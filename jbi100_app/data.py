@@ -43,10 +43,16 @@ def get_data():
 
     loan_type_count = get_loan_type_count(df_selected)
     ocuppation_income_group = get_occupation_income_group(df_selected)
+
+    income_group_dict = ocuppation_income_group.groupby('Income_Group')['Occupation'].apply(lambda x: list(set(x))).to_dict()
+
     debt_to_income_ratio = get_debt_to_income_ratio_per_occupation(df_selected)
     delays_per_occupation = get_num_of_delayed_payments_per_occupation(df_selected)
 
-    return df_selected, loan_type_count, ocuppation_income_group, debt_to_income_ratio, delays_per_occupation
+    return (top_left_data(ocuppation_income_group, loan_type_count), 
+            top_right_data(df_selected), 
+            bottom_left_data(debt_to_income_ratio, ocuppation_income_group), 
+            bottom_right_data(df_selected, delays_per_occupation)) 
 
 
 def clean_data(df, column_name: str, lower_bound: float, upper_bound: float):
@@ -95,7 +101,7 @@ def get_loan_type_count(df_selected):
     df_selected['Type_of_Loan'] = df_selected['Type_of_Loan'].str.strip()
 
     # Group by 'Occupation' and 'Type_of_Loan' and count the number of each loan type per occupation
-    loan_counts = df_selected.groupby(['Occupation', 'Type_of_Loan']).size().reset_index(name='Counts')
+    loan_counts = df_selected.groupby(['Occupation', 'Type_of_Loan']).size().reset_index(name='Loan_Type_Count')
 
     return loan_counts
 
@@ -115,9 +121,9 @@ def get_debt_to_income_ratio_per_occupation(df_selected):
 
     df_selected['DIO'] = df_selected['Outstanding_Debt']/df_selected['Annual_Income']
 
-    debt_to_income_ratio = df_selected.groupby('Occupation')['DIO'].mean().reset_index(name="Count")
+    debt_to_income_ratio = df_selected.groupby('Occupation')['DIO'].mean().reset_index(name="DIO")
 
-    debt_to_income_ratio['Count'] = (debt_to_income_ratio['Count'] - debt_to_income_ratio['Count'].min()) / (debt_to_income_ratio['Count'].max() - debt_to_income_ratio['Count'].min())
+    debt_to_income_ratio['DIO'] = (debt_to_income_ratio['DIO'] - debt_to_income_ratio['DIO'].min()) / (debt_to_income_ratio['DIO'].max() - debt_to_income_ratio['DIO'].min())
 
     return debt_to_income_ratio
 
@@ -125,8 +131,53 @@ def get_debt_to_income_ratio_per_occupation(df_selected):
 def get_num_of_delayed_payments_per_occupation(df_selected):
     df_selected['Num_of_Delayed_Payment'] = df_selected['Num_of_Delayed_Payment'].astype(float)
 
-    delays_per_occupation = df_selected.groupby('Occupation')['Num_of_Delayed_Payment'].mean().reset_index(name="Count")
+    delays_per_occupation = df_selected.groupby('Occupation')['Num_of_Delayed_Payment'].mean().reset_index(name="Delays")
 
-    delays_per_occupation['Count'] = 1 + (delays_per_occupation['Count'] - delays_per_occupation['Count'].min()) * (10 - 1) / (delays_per_occupation['Count'].max() - delays_per_occupation['Count'].min())
+    delays_per_occupation['Delays'] = 1 + (delays_per_occupation['Delays'] - delays_per_occupation['Delays'].min()) * (10 - 1) / (delays_per_occupation['Delays'].max() - delays_per_occupation['Delays'].min())
 
     return delays_per_occupation
+
+
+def top_left_data(ocuppation_income_group, loan_type_count):
+    df_merged = pd.merge(loan_type_count, ocuppation_income_group, on='Occupation')
+
+    top_left_data = df_merged[['Type_of_Loan', 'Loan_Type_Count', 'Income_Group']]
+
+    return top_left_data
+
+
+def top_right_data(df_selected):
+    df_selected['Num_of_Delayed_Payment'] = df_selected['Num_of_Delayed_Payment'].astype(float)
+
+    top_right_data = df_selected.groupby(['Month', 'Occupation'])['Num_of_Delayed_Payment'].sum().reset_index(name="Count")
+
+    top_right_data['Count'] = 1 + (top_right_data['Count'] - top_right_data['Count'].min()) * (10 - 1) / (top_right_data['Count'].max() - top_right_data['Count'].min())
+
+    return top_right_data
+
+def bottom_left_data(debt_to_income_ratio, ocuppation_income_group):
+    # Map each occupation to its income group
+    df_merged = pd.merge(debt_to_income_ratio, ocuppation_income_group, on='Occupation')
+
+    # Create a new dataframe that contains the 'Occupation', 'Debt_to_Income_Ratio', and 'Income_Group' columns
+    bottom_left_data = df_merged[['Occupation', 'DIO', 'Income_Group']]
+
+    return bottom_left_data
+
+def bottom_right_data(df_selected, delays_per_occupation):
+    df_selected['Credit_Utilization_Ratio'] = df_selected['Credit_Utilization_Ratio'].astype(float)
+    df_selected['Num_Bank_Accounts'] = df_selected['Num_Bank_Accounts'].astype(float)
+
+    credit_util_ratio_per_occupation = df_selected.groupby('Occupation')['Credit_Utilization_Ratio'].mean().reset_index(name="Avg_Credit_Util_Ratio")
+
+    bottom_right_data = df_selected[['Num_Bank_Accounts', 'Occupation']]
+
+    bottom_right_data = pd.merge(bottom_right_data, delays_per_occupation, on='Occupation')
+    bottom_right_data = pd.merge(bottom_right_data, credit_util_ratio_per_occupation, on='Occupation')
+
+    bottom_right_data = bottom_right_data.groupby('Occupation').mean().reset_index()
+
+    bottom_right_data['Num_Bank_Accounts'] = 1 + (bottom_right_data['Num_Bank_Accounts'] - bottom_right_data['Num_Bank_Accounts'].min()) * (10 - 1) / (bottom_right_data['Num_Bank_Accounts'].max() - bottom_right_data['Num_Bank_Accounts'].min())
+    bottom_right_data['Avg_Credit_Util_Ratio'] = 1 + (bottom_right_data['Avg_Credit_Util_Ratio'] - bottom_right_data['Avg_Credit_Util_Ratio'].min()) * (10 - 1) / (bottom_right_data['Avg_Credit_Util_Ratio'].max() - bottom_right_data['Avg_Credit_Util_Ratio'].min())
+    
+    return bottom_right_data
