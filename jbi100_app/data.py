@@ -44,8 +44,9 @@ def get_data():
     loan_type_count = get_loan_type_count(df_selected)
     ocuppation_income_group = get_occupation_income_group(df_selected)
     debt_to_income_ratio = get_debt_to_income_ratio_per_occupation(df_selected)
+    delays_per_occupation = get_num_of_delayed_payments_per_occupation(df_selected)
 
-    return df_selected, loan_type_count, ocuppation_income_group, debt_to_income_ratio
+    return df_selected, loan_type_count, ocuppation_income_group, debt_to_income_ratio, delays_per_occupation
 
 
 def clean_data(df, column_name: str, lower_bound: float, upper_bound: float):
@@ -119,3 +120,13 @@ def get_debt_to_income_ratio_per_occupation(df_selected):
     debt_to_income_ratio['Count'] = (debt_to_income_ratio['Count'] - debt_to_income_ratio['Count'].min()) / (debt_to_income_ratio['Count'].max() - debt_to_income_ratio['Count'].min())
 
     return debt_to_income_ratio
+
+
+def get_num_of_delayed_payments_per_occupation(df_selected):
+    df_selected['Num_of_Delayed_Payment'] = df_selected['Num_of_Delayed_Payment'].astype(float)
+
+    delays_per_occupation = df_selected.groupby('Occupation')['Num_of_Delayed_Payment'].mean().reset_index(name="Count")
+
+    delays_per_occupation['Count'] = 1 + (delays_per_occupation['Count'] - delays_per_occupation['Count'].min()) * (10 - 1) / (delays_per_occupation['Count'].max() - delays_per_occupation['Count'].min())
+
+    return delays_per_occupation
