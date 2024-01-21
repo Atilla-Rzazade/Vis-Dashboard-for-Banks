@@ -40,7 +40,12 @@ def get_data():
     df_selected = clean_data(df_selected, 'Num_of_Delayed_Payment', 0, 28)
 
     refill_data(df_selected)
-    return df_selected
+
+    loan_type_count = get_loan_type_count(df_selected)
+    ocuppation_income_group = get_occupation_income_group(df_selected)
+    debt_to_income_ratio = get_debt_to_income_ratio_per_occupation(df_selected)
+
+    return df_selected, loan_type_count, ocuppation_income_group, debt_to_income_ratio
 
 
 def clean_data(df, column_name: str, lower_bound: float, upper_bound: float):
@@ -79,3 +84,38 @@ def refill_data(df_selected):
     df_selected['Num_of_Loan'] = df_selected.apply(fill_num_of_loan, axis=1)
 
     return df_selected
+
+
+def get_loan_type_count(df_selected):
+    # Split the 'Type_of_Loan' column into separate rows
+    df_selected = df_selected.assign(Type_of_Loan=df_selected['Type_of_Loan'].str.replace(", and", ",").str.split(',')).explode('Type_of_Loan')
+
+    # Remove leading/trailing whitespaces
+    df_selected['Type_of_Loan'] = df_selected['Type_of_Loan'].str.strip()
+
+    # Group by 'Occupation' and 'Type_of_Loan' and count the number of each loan type per occupation
+    loan_counts = df_selected.groupby(['Occupation', 'Type_of_Loan']).size().reset_index(name='Counts')
+
+    return loan_counts
+
+def get_occupation_income_group(df_selected):
+    # Define income groups based on percentiles
+    df_selected['Income_Group'] = pd.qcut(df_selected['Annual_Income'], q=[0, .2, .4 , .6, .8, 1], labels=['20', '40', '60', '80', '100'])
+
+    # Now you can group by occupation and income group
+    grouped = df_selected.groupby(['Occupation', 'Income_Group']).size().reset_index(name='Counts')
+
+    ocuppation_income_group = grouped.loc[grouped.groupby('Occupation')['Counts'].idxmax()]
+
+    return ocuppation_income_group
+
+def get_debt_to_income_ratio_per_occupation(df_selected):
+    df_selected['Outstanding_Debt'] = df_selected['Outstanding_Debt'].astype(float)
+
+    df_selected['DIO'] = df_selected['Outstanding_Debt']/df_selected['Annual_Income']
+
+    debt_to_income_ratio = df_selected.groupby('Occupation')['DIO'].mean().reset_index(name="Count")
+
+    debt_to_income_ratio['Count'] = (debt_to_income_ratio['Count'] - debt_to_income_ratio['Count'].min()) / (debt_to_income_ratio['Count'].max() - debt_to_income_ratio['Count'].min())
+
+    return debt_to_income_ratio
