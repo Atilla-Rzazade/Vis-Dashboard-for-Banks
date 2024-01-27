@@ -1,10 +1,13 @@
 import plotly.express as px
 import pandas as pd
 import numpy as np
+import os
+import calendar
 
 def get_data():
     # Read data
-    df = pd.read_csv('Dataset/all_data.csv', sep=';', low_memory=False)
+    print(pd. __version__)
+    df = pd.read_csv('jbi100_app/all_data.csv', sep=';', low_memory=False)
 
     selected_columns = [
         "Customer_ID", # tick
@@ -30,7 +33,7 @@ def get_data():
         df_selected.loc[:, column] = df_selected[column].apply(lambda x: str(x).replace('_', ''))
         df_selected.loc[:, column] = df_selected[column].apply(lambda x: str(x).replace(',', '.'))
 
-        df[column] = pd.to_numeric(df[column], errors='coerce')
+        df_selected[column] = pd.to_numeric(df_selected[column], errors='coerce')
 
     df_selected.replace(empty_row_representation, np.nan, inplace=True)
 
@@ -42,6 +45,7 @@ def get_data():
     refill_data(df_selected)
 
     loan_type_count = get_loan_type_count(df_selected)
+
     ocuppation_income_group = get_occupation_income_group(df_selected)
 
     income_group_dict = ocuppation_income_group.groupby('Income_Group')['Occupation'].apply(lambda x: list(set(x))).to_dict()
@@ -65,10 +69,13 @@ def refill_data(df_selected):
 
     # Fill missing values
     for column in columns_to_fill:
+        print(column)
         # Update the dictionary with the current state of the DataFrame
-        df_selected[column] = df_selected.groupby('Customer_ID')[column].apply(lambda group: group.fillna(method='ffill'))
-        df_selected[column] = df_selected.groupby('Customer_ID')[column].apply(lambda group: group.fillna(method='bfill'))
+        df_selected[column] = df_selected.groupby('Customer_ID')[column].apply(lambda group: group.ffill()).reset_index(level=0, drop=True)
+        df_selected[column] = df_selected.groupby('Customer_ID')[column].apply(lambda group: group.bfill()).reset_index(level=0, drop=True)
 
+    
+    print("meow")
     df_selected['Num_of_Delayed_Payment'] = df_selected.groupby('Customer_ID')['Num_of_Delayed_Payment'].transform(lambda x: x.fillna(round(x.median(), 1)))
 
     def fill_with_mode(x):
@@ -142,6 +149,11 @@ def top_left_data(ocuppation_income_group, loan_type_count):
     df_merged = pd.merge(loan_type_count, ocuppation_income_group, on='Occupation')
 
     top_left_data = df_merged[['Type_of_Loan', 'Loan_Type_Count', 'Income_Group']]
+    top_left_data = top_left_data.groupby(['Type_of_Loan', 'Income_Group']).sum().reset_index()
+
+    top_left_data["Income_Group"] = pd.to_numeric(top_left_data["Income_Group"], errors='coerce')
+    top_left_data.loc[:, "Type_of_Loan"] = top_left_data["Type_of_Loan"].apply(lambda x: str(x).replace('Loan', ''))
+
 
     return top_left_data
 
@@ -149,10 +161,17 @@ def top_left_data(ocuppation_income_group, loan_type_count):
 def top_right_data(df_selected):
     df_selected['Num_of_Delayed_Payment'] = df_selected['Num_of_Delayed_Payment'].astype(float)
 
+    # Map the month names to their corresponding numerical values
+    month_to_num = {name: num for num, name in enumerate(calendar.month_name) if num}
+    df_selected['Month'] = df_selected['Month'].map(month_to_num)
+
     top_right_data = df_selected.groupby(['Month', 'Occupation'])['Num_of_Delayed_Payment'].sum().reset_index(name="Count")
 
     top_right_data['Count'] = 1 + (top_right_data['Count'] - top_right_data['Count'].min()) * (10 - 1) / (top_right_data['Count'].max() - top_right_data['Count'].min())
-
+    
+    # Sort the data by Month
+    top_right_data = top_right_data.sort_values(by='Month')
+    
     return top_right_data
 
 def bottom_left_data(debt_to_income_ratio, ocuppation_income_group):

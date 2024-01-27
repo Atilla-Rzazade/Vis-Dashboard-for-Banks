@@ -1,58 +1,93 @@
 from jbi100_app.main import app
-from jbi100_app.views.menu import make_menu_layout
-from jbi100_app.views.scatterplot import Scatterplot
+from jbi100_app import data
+from jbi100_app.views.linegraph import LineGraph
+from jbi100_app.views.barchart import BarChart
+from jbi100_app.views.bubblechart import BubbleChart
+from jbi100_app.views.parallelcoordinates import ParallelCoordinates  # Assuming you have a ParallelCoordinates class
 
 from dash import html
 import plotly.express as px
 from dash.dependencies import Input, Output
 
-
 if __name__ == '__main__':
     # Create data
-    df = px.data.iris()
+    data = data.get_data()
+    top_left_data = data[0]
+    top_right_data = data[1]
+    print(top_left_data)
+    bottom_left_data = data[2]
+    bottom_right_data = data[3]
 
     # Instantiate custom views
-    scatterplot1 = Scatterplot("Scatterplot 1", 'sepal_length', 'sepal_width', df)
-    scatterplot2 = Scatterplot("Scatterplot 2", 'petal_length', 'petal_width', df)
+    linegraph = LineGraph("Line Graph", 'Month', 'Count', top_right_data)
+    parcoords = ParallelCoordinates("Parallel Coordinates", top_left_data)
+    barchart = BarChart("Bar Chart", 'Occupation', 'DIO', bottom_left_data)
+    bubblechart = BubbleChart("Bubble Chart", 'Num_Bank_Accounts', 'Avg_Credit_Util_Ratio', 'Delays', bottom_right_data)
 
     app.layout = html.Div(
         id="app-container",
         children=[
-            # Left column
+            # Top row
             html.Div(
-                id="left-column",
-                className="three columns",
-                children=make_menu_layout()
-            ),
-
-            # Right column
-            html.Div(
-                id="right-column",
-                className="nine columns",
+                className="row",
                 children=[
-                    scatterplot1,
-                    scatterplot2
+                    # Left column
+                    html.Div(
+                        className="six columns",
+                        children=[parcoords]  # Place the line graph here
+                    ),
+                    # Right column
+                    html.Div(
+                        className="six columns",
+                        children=[linegraph]  # Place the parallel coordinates chart here
+                    ),
+                ],
+            ),
+            # Bottom row
+            html.Div(
+                className="row",
+                children=[
+                    # Left column
+                    html.Div(
+                        className="six columns",
+                        children=[barchart]  # Place the bar chart here
+                    ),
+                    # Right column
+                    html.Div(
+                        className="six columns",
+                        children=[bubblechart]  # Place the bubble chart here
+                    ),
                 ],
             ),
         ],
     )
 
-    # Define interactions
     @app.callback(
-        Output(scatterplot1.html_id, "figure"), [
-        Input("select-color-scatter-1", "value"),
-        Input(scatterplot2.html_id, 'selectedData')
-    ])
-    def update_scatter_1(selected_color, selected_data):
-        return scatterplot1.update(selected_color, selected_data)
+        Output(linegraph.html_id, 'figure'),
+        Input(linegraph.html_id + '-dropdown', 'value')
+    )
+    def update_linegraph(selected_occupations):
+        return linegraph.update(selected_occupations)
 
     @app.callback(
-        Output(scatterplot2.html_id, "figure"), [
-        Input("select-color-scatter-2", "value"),
-        Input(scatterplot1.html_id, 'selectedData')
-    ])
-    def update_scatter_2(selected_color, selected_data):
-        return scatterplot2.update(selected_color, selected_data)
+        Output(parcoords.html_id, 'figure'),
+        Input(parcoords.html_id + '-dropdown', 'value')
+    )
+    def update_parcoords(selected_income_groups):
+        return parcoords.update(selected_income_groups)
 
+    @app.callback(
+        Output(barchart.html_id, 'figure'),
+        Input(barchart.html_id + '-dropdown', 'value')
+    )
+    def update_barchart(selected_occupations):
+        return barchart.update(selected_occupations)
+
+    @app.callback(
+        Output(bubblechart.html_id, 'figure'),
+        Input(bubblechart.html_id + '-dropdown', 'value')
+    )
+    def update_bubblechart(selected_occupations):
+        return bubblechart.update(selected_occupations)
 
     app.run_server(debug=False, dev_tools_ui=False)
