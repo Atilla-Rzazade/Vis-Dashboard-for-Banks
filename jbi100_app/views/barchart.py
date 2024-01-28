@@ -22,7 +22,7 @@ class BarChart(html.Div):
             children=[
                 html.H6(name),
                 self.dropdown,
-                dcc.Graph(id=self.html_id)
+                dcc.Graph(id=self.html_id, config={'modeBarButtonsToAdd':['select2d', 'lasso2d']})
             ],
         )
 

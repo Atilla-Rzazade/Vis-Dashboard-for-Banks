@@ -56,7 +56,8 @@ def get_data():
     return (top_left_data(ocuppation_income_group, loan_type_count), 
             top_right_data(df_selected), 
             bottom_left_data(debt_to_income_ratio, ocuppation_income_group), 
-            bottom_right_data(df_selected, delays_per_occupation), income_group_dict) 
+            bottom_right_data(df_selected, delays_per_occupation), 
+            income_group_dict) 
 
 
 def clean_data(df, column_name: str, lower_bound: float, upper_bound: float):

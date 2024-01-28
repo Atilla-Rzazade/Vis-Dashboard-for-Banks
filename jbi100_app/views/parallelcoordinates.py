@@ -21,7 +21,8 @@ class ParallelCoordinates(html.Div):
             children=[
                 html.H6(name),
                 self.dropdown,
-                dcc.Graph(id=self.html_id)
+                dcc.Graph(id=self.html_id, config={'modeBarButtonsToAdd':['select2d', 'lasso2d']})
+
             ],
         )
 
@@ -31,7 +32,7 @@ class ParallelCoordinates(html.Div):
             go.Parcoords(
                 line = dict(color = df_selected['Income_Group'],  # Use the numerical income groups here
                         colorscale = px.colors.qualitative.Plotly,  # Define the colorscale
-                        showscale = False),  # Disable the color scale
+                        showscale = True),
                 dimensions = [dict(range = [self.df['Loan_Type_Count'].min(), self.df['Loan_Type_Count'].max()],
                                 label = loan_type, values = df_selected[df_selected['Type_of_Loan'] == loan_type]['Loan_Type_Count']) 
                             for loan_type in df_selected['Type_of_Loan'].unique()]

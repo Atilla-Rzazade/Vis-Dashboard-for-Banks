@@ -43,7 +43,9 @@ class BubbleChart(html.Div):
                     size=size_values,
                     sizemode='diameter'
                 ),
+                customdata=occupation_df['Occupation'],
                 name=occupation
             ))
 
         return fig
+
