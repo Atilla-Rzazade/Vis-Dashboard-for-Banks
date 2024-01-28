@@ -26,7 +26,7 @@ class BarChart(html.Div):
             ],
         )
 
-    def update(self, selected_occupations):
+    def update(self, selected_occupations, selected_data):
         fig = go.Figure()
 
         for occupation in selected_occupations:
@@ -38,5 +38,29 @@ class BarChart(html.Div):
                 y=y_values,
                 name=occupation
             ))
+
+        fig.update_layout(
+            yaxis_zeroline=False,
+            xaxis_zeroline=False,
+            dragmode='select'
+        )
+
+        # highlight points with selection other graph
+        if selected_data is None:
+            selected_index = selected_occupations  # show all
+        elif selected_data['points']:
+            selected_index = [  # show only selected indices
+                x['customdata']
+                for x in selected_data['points']
+                
+            ]
+
+        # print(selected_index)
+        
+        new_data = [d for d in fig.data if d.name in selected_index]
+        fig.data = new_data
+        
+
+        print(fig.data)
 
         return fig
