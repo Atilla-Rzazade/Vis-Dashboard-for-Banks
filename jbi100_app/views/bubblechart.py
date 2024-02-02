@@ -2,7 +2,7 @@ import plotly.express as px
 from dash import html, dcc
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
-from jbi100_app.config import COLORS
+from jbi100_app.config import COLORS, COLORS_BLIND
 
 class BubbleChart(html.Div):
     def __init__(self, name, feature_x, feature_y, feature_size, df):
@@ -37,8 +37,10 @@ class BubbleChart(html.Div):
             ],
         )
 
-    def update(self, selected_occupations, selected_data):
+    def update(self, selected_occupations, selected_data, palette_name):
         fig = go.Figure()
+
+        colors = COLORS if palette_name == 'default' else COLORS_BLIND
 
         # Create a list to hold the max size value for each occupation
         occupation_sizes = []
@@ -56,12 +58,13 @@ class BubbleChart(html.Div):
             x_values = occupation_df[self.feature_x]
             y_values = occupation_df[self.feature_y]
             size_values = occupation_df[self.feature_size] * 10
+            color = colors[self.df['Occupation'].tolist().index(occupation)] if occupation in self.df['Occupation'].tolist() else '#000'
             fig.add_trace(go.Scatter(
                 x=x_values,
                 y=y_values,
                 mode='markers',
                 marker=dict(
-                    color=self.occupation_colors[occupation],
+                    color=color,
                     size=size_values,
                     sizemode='diameter'
                 ),

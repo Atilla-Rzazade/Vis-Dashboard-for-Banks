@@ -2,7 +2,7 @@ import plotly.express as px
 from dash import html, dcc
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
-from jbi100_app.config import COLORS
+from jbi100_app.config import COLORS, COLORS_BLIND
 
 
 class BarChart(html.Div):
@@ -38,19 +38,22 @@ class BarChart(html.Div):
             ],
         )
 
-    def update(self, selected_occupations, selected_data):
+    def update(self, selected_occupations, selected_data, palette_name):
         # Generate the bar chart based on the occupations currently selected in the dropdown
         fig = go.Figure()
+
+        colors = COLORS if palette_name == 'default' else COLORS_BLIND
 
         for occupation in selected_occupations:
             occupation_df = self.df[self.df['Occupation'] == occupation]
             x_values = [occupation]
             y_values = occupation_df[self.feature_y].values
+            color = colors[self.df['Occupation'].tolist().index(occupation)] if occupation in self.df['Occupation'].tolist() else '#000'
             fig.add_trace(go.Bar(
                 x=x_values, 
                 y=y_values,
                 name=occupation,
-                marker=dict(color=self.occupation_colors.get(occupation, '#000'))  # Fallback color if not found
+                marker=dict(color=color)  # Fallback color if not found
             ))
 
         fig.update_layout(

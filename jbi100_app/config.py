@@ -1,10 +1,26 @@
-# Here you can add any global configuations
-
-color_list1 = ["green", "blue"]
-color_list2 = ["red", "purple"]
+# config.py
 
 # Defined color palette for occupations
 COLORS = [
+    "#E6194B",  # red
+    "#3CB44B",  # green
+    "#FFE119",  # yellow
+    "#4363D8",  # blue
+    "#F58231",  # orange
+    "#911EB4",  # purple
+    "#46F0F0",  # cyan
+    "#F032E6",  # magenta
+    "#BCF60C",  # lime
+    "#FABEBE",  # pink
+    "#008080",  # teal
+    "#E6BEFF",  # lavender
+    "#9A6324",  # brown
+    "#FFFAC8",  # beige
+    "#800000",  # maroon
+]
+
+# Defined color-blined palette for occupations
+COLORS_BLIND = [
    '#006ddb', '#ff6db6', '#920000', 
    '#6db6ff', '#ffff6d', '#490092', 
    '#ffb6db', '#000000', '#24ff24', 
