@@ -14,12 +14,10 @@ if __name__ == '__main__':
     # Create data
     data = data.get_data()
     top_left_data = data[0]
-    print(top_left_data)
     top_right_data = data[1]
     bottom_left_data = data[2]
     bottom_right_data = data[3]
     income_group_dict = data[4]
-    print(income_group_dict)
 
     if len(top_left_data) == 0 or len(top_right_data) == 0 or len(bottom_left_data) == 0 or len(bottom_right_data) == 0:
         raise ValueError('No data to display')
@@ -99,11 +97,12 @@ if __name__ == '__main__':
     [Input(bubblechart.html_id, 'selectedData'),
      Input(linegraph.html_id + '-dropdown', 'value')]
     )
-    def update_linegraph(selected_data, dropdown_value):
-        if selected_data is None or not selected_data['points']:
+    def update_linegraph(selected_data_bubblechart, dropdown_value):
+        if selected_data_bubblechart is None or not selected_data_bubblechart['points']:
             selected_occupations = dropdown_value
         else:
-            selected_occupations = [point['customdata'] for point in selected_data['points']]           
+            selected_occupations = [point['customdata'] for point in selected_data_bubblechart['points']]           
+    
         return linegraph.update(selected_occupations)
 
    

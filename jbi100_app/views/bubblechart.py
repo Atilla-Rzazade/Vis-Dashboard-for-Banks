@@ -2,6 +2,7 @@ import plotly.express as px
 from dash import html, dcc
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
+from jbi100_app.config import COLORS
 
 class BubbleChart(html.Div):
     def __init__(self, name, feature_x, feature_y, feature_size, df):
@@ -11,10 +12,17 @@ class BubbleChart(html.Div):
         self.feature_y = feature_y
         self.feature_size = feature_size
 
+        occupations = ['Architect', 'Developer', 'Engineer', 'Musician', 'Scientist', 'Writer']
+
+        self.occupation_colors = {occupation: color for occupation, color in zip(self.df['Occupation'], COLORS)}
+
+        options = [{'label': occupation, 'value': occupation} for occupation in occupations if occupation in self.df['Occupation'].values]
+        values = [occupation for occupation in occupations if occupation in self.df['Occupation'].values]
+
         self.dropdown = dcc.Dropdown(
             id=self.html_id + '-dropdown',
-            options=[{'label': i, 'value': i} for i in df['Occupation'].unique()],
-            value=df['Occupation'].unique().tolist(),
+            options=options,
+            value=values,
             multi=True
         )
 
@@ -30,31 +38,43 @@ class BubbleChart(html.Div):
     def update(self, selected_occupations, selected_data):
         fig = go.Figure()
 
+        # Create a list to hold the max size value for each occupation
+        occupation_sizes = []
         for occupation in selected_occupations:
+            occupation_df = self.df[self.df['Occupation'] == occupation]
+            max_size = occupation_df[self.feature_size].max()  # Get the max size for current occupation
+            occupation_sizes.append((max_size, occupation))
+
+        # Sort the list by size in descending order
+        occupation_sizes.sort(key=lambda x: x[0])
+
+        # Now, add the traces based on the sorted occupations
+        for _, occupation in occupation_sizes:
             occupation_df = self.df[self.df['Occupation'] == occupation]
             x_values = occupation_df[self.feature_x]
             y_values = occupation_df[self.feature_y]
             size_values = occupation_df[self.feature_size] * 10
             fig.add_trace(go.Scatter(
-                x=x_values, 
+                x=x_values,
                 y=y_values,
                 mode='markers',
                 marker=dict(
+                    color=self.occupation_colors[occupation],
                     size=size_values,
                     sizemode='diameter'
                 ),
                 customdata=occupation_df['Occupation'],
                 name=occupation
             ))
-        
+
         fig.update_layout(
             yaxis_zeroline=False,
             xaxis_zeroline=False,
-            dragmode='select'
+            dragmode='select',
+            legend=dict(traceorder='normal')
         )
 
-
-        # highlight points with selection other graph
+         # highlight points with selection other graph
         if selected_data is None:
             selected_index = selected_occupations  # show all
         elif selected_data['points']:
@@ -62,15 +82,11 @@ class BubbleChart(html.Div):
                 x['x']
                 for x in selected_data['points']
             ]
-
-        # print(selected_index)
         
         new_data = [d for d in fig.data if d.customdata[0] in selected_index]
         fig.data = new_data
         
 
-        print(fig.data)
-        print(fig)
-
         return fig
+
 

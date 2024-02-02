@@ -2,6 +2,8 @@ import plotly.express as px
 from dash import html, dcc
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
+from jbi100_app.config import COLORS
+
 
 class BarChart(html.Div):
     def __init__(self, name, feature_x, feature_y, df):
@@ -10,10 +12,17 @@ class BarChart(html.Div):
         self.feature_x = feature_x
         self.feature_y = feature_y
 
+        occupations = ['Architect', 'Developer', 'Engineer', 'Musician', 'Scientist', 'Writer']
+
+        self.occupation_colors = {occupation: color for occupation, color in zip(self.df['Occupation'], COLORS)}
+
+        options = [{'label': occupation, 'value': occupation} for occupation in occupations if occupation in self.df['Occupation'].values]
+        values = [occupation for occupation in occupations if occupation in self.df['Occupation'].values]
+
         self.dropdown = dcc.Dropdown(
             id=self.html_id + '-dropdown',
-            options=[{'label': i, 'value': i} for i in df['Occupation'].unique()],
-            value=df['Occupation'].unique().tolist(),
+            options=options,
+            value=values,
             multi=True
         )
 
@@ -36,7 +45,8 @@ class BarChart(html.Div):
             fig.add_trace(go.Bar(
                 x=x_values, 
                 y=y_values,
-                name=occupation
+                name=occupation,
+                marker=dict(color=self.occupation_colors[occupation])
             ))
 
         fig.update_layout(
@@ -55,7 +65,6 @@ class BarChart(html.Div):
                 
             ]
 
-        # print(selected_index)
         
         new_data = [d for d in fig.data if d.name in selected_index]
         fig.data = new_data

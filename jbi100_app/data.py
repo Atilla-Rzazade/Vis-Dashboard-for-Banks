@@ -172,7 +172,20 @@ def top_right_data(df_selected):
     
     # Sort the data by Month
     top_right_data = top_right_data.sort_values(by='Month')
+
+    # Map the numerical month values back to their names
+    num_to_month = {num: name for num, name in enumerate(calendar.month_name) if name}
+    top_right_data['Month'] = top_right_data['Month'].map(num_to_month)
     
+    sorted_unique_occupations = sorted(top_right_data['Occupation'].unique())
+    occupations_df = pd.DataFrame(sorted_unique_occupations, columns=['Sorted_Occupation'])
+
+    # Reset the index of the original DataFrame so it can be merged with the occupations DataFrame
+    top_right_data.reset_index(drop=True, inplace=True)
+
+    # Merge the two DataFrames
+    top_right_data = pd.concat([top_right_data, occupations_df], axis=1)
+
     return top_right_data
 
 def bottom_left_data(debt_to_income_ratio, ocuppation_income_group):
