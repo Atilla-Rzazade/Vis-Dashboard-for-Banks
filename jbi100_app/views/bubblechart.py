@@ -3,6 +3,7 @@ from dash import html, dcc
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 from jbi100_app.config import COLORS, COLORS_BLIND
+import numpy as np
 
 class BubbleChart(html.Div):
     def __init__(self, name, feature_x, feature_y, feature_size, df):
@@ -68,8 +69,10 @@ class BubbleChart(html.Div):
                     size=size_values,
                     sizemode='diameter'
                 ),
-                customdata=occupation_df['Occupation'],
-                name=occupation
+                customdata = np.stack((occupation_df['Occupation'], size_values/10), axis=-1),
+                name=occupation,
+                hovertemplate='Size: %{customdata[1]:.2f}<extra></extra>'  # Custom hover text
+
             ))
 
         fig.update_layout(
@@ -88,7 +91,7 @@ class BubbleChart(html.Div):
                 for x in selected_data['points']
             ]
         
-        new_data = [d for d in fig.data if d.customdata[0] in selected_index]
+        new_data = [d for d in fig.data if d.customdata[0][0] in selected_index]
         fig.data = new_data
         
 

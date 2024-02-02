@@ -53,7 +53,8 @@ class LineGraph(html.Div):
                 y=y_values,
                 mode='lines',
                 name=occupation,
-                line=dict(color=color)
+                line=dict(color=color),
+                hovertemplate='Value: %{y}<extra></extra>'  # Custom hover text
             ))
 
         return fig

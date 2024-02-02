@@ -31,11 +31,11 @@ COLORS_BLIND = [
 
 # Five-color palette with darker shades from yellow to red
 SEQUENTIAL_COLORS = [
-    "#d0ee11",  # Darker yellow
-    "#a6d75b",  # Darker light orange
-    "#76c68f",  # Darker light orange
-    "#22a7f0",  # Darker moderate orange
-    "#115f9a",  # Darker dark orange
+    "#d0ee11",  
+    "#8cb349",  
+    "#4a8063",  
+    "#22a7f0",  
+    "#115f9a",  
 ]
 
 

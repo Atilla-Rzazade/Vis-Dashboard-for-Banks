@@ -53,7 +53,8 @@ class BarChart(html.Div):
                 x=x_values, 
                 y=y_values,
                 name=occupation,
-                marker=dict(color=color)  # Fallback color if not found
+                marker=dict(color=color),  # Fallback color if not found
+                hovertemplate='Value: %{y}<extra></extra>'  # Custom hover text
             ))
 
         fig.update_layout(
