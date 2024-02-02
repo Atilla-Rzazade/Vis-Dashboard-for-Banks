@@ -12,17 +12,19 @@ class BubbleChart(html.Div):
         self.feature_y = feature_y
         self.feature_size = feature_size
 
-        occupations = ['Architect', 'Developer', 'Engineer', 'Musician', 'Scientist', 'Writer']
+        # Define the initial set of occupations to display
+        initial_occupations = ['Architect', 'Developer', 'Engineer', 'Musician', 'Scientist', 'Writer']
+        
+        # Create a color mapping for all possible occupations, not just the initial set
+        self.occupation_colors = {occupation: color for occupation, color in zip(df['Occupation'].unique(), COLORS)}
 
-        self.occupation_colors = {occupation: color for occupation, color in zip(self.df['Occupation'], COLORS)}
-
-        options = [{'label': occupation, 'value': occupation} for occupation in occupations if occupation in self.df['Occupation'].values]
-        values = [occupation for occupation in occupations if occupation in self.df['Occupation'].values]
+        # Create dropdown options for all occupations present in the dataframe
+        options = [{'label': occupation, 'value': occupation} for occupation in df['Occupation'].unique()]
 
         self.dropdown = dcc.Dropdown(
             id=self.html_id + '-dropdown',
             options=options,
-            value=values,
+            value=initial_occupations,
             multi=True
         )
 

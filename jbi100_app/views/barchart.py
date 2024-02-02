@@ -12,17 +12,20 @@ class BarChart(html.Div):
         self.feature_x = feature_x
         self.feature_y = feature_y
 
-        occupations = ['Architect', 'Developer', 'Engineer', 'Musician', 'Scientist', 'Writer']
+        # Define the initial set of occupations to display
+        initial_occupations = ['Architect', 'Developer', 'Engineer', 'Musician', 'Scientist', 'Writer']
+        
+        # Create a color mapping for all possible occupations, not just the initial set
+        self.occupation_colors = {occupation: color for occupation, color in zip(df['Occupation'].unique(), COLORS)}
 
-        self.occupation_colors = {occupation: color for occupation, color in zip(self.df['Occupation'], COLORS)}
+        # Create dropdown options for all occupations present in the dataframe
+        options = [{'label': occupation, 'value': occupation} for occupation in df['Occupation'].unique()]
 
-        options = [{'label': occupation, 'value': occupation} for occupation in occupations if occupation in self.df['Occupation'].values]
-        values = [occupation for occupation in occupations if occupation in self.df['Occupation'].values]
-
+        # The initial value of the dropdown is set to the predefined list of occupations
         self.dropdown = dcc.Dropdown(
             id=self.html_id + '-dropdown',
             options=options,
-            value=values,
+            value=initial_occupations,  # Default value includes only the initial occupations
             multi=True
         )
 
@@ -36,6 +39,7 @@ class BarChart(html.Div):
         )
 
     def update(self, selected_occupations, selected_data):
+        # Generate the bar chart based on the occupations currently selected in the dropdown
         fig = go.Figure()
 
         for occupation in selected_occupations:
@@ -46,14 +50,15 @@ class BarChart(html.Div):
                 x=x_values, 
                 y=y_values,
                 name=occupation,
-                marker=dict(color=self.occupation_colors[occupation])
+                marker=dict(color=self.occupation_colors.get(occupation, '#000'))  # Fallback color if not found
             ))
 
         fig.update_layout(
             yaxis_zeroline=False,
             xaxis_zeroline=False,
-            dragmode='select'
+            dragmode='select',
         )
+
 
         # highlight points with selection other graph
         if selected_data is None:
