@@ -79,6 +79,4 @@ class BarChart(html.Div):
         fig.data = new_data
         
 
-        print(fig.data)
-
         return fig

@@ -52,9 +52,12 @@ class BubbleChart(html.Div):
 
         # Sort the list by size in descending order
         occupation_sizes.sort(key=lambda x: x[0])
+      
 
         # Now, add the traces based on the sorted occupations
         for _, occupation in occupation_sizes:
+            print(f'occupation: {occupation}')
+            print(f'self.df[Occupation]: {self.df["Occupation"]}')
             occupation_df = self.df[self.df['Occupation'] == occupation]
             x_values = occupation_df[self.feature_x]
             y_values = occupation_df[self.feature_y]

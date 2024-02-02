@@ -24,10 +24,10 @@ if __name__ == '__main__':
         raise ValueError('No data to display')
 
     # Instantiate custom views
-    linegraph = LineGraph("Line Graph", 'Month', 'Count', top_right_data)
-    parcoords = ParallelCoordinates("Parallel Coordinates", top_left_data)
-    barchart = BarChart("Bar Chart", 'Occupation', 'DIO', bottom_left_data)
-    bubblechart = BubbleChart("Bubble Chart", 'Num_Bank_Accounts', 'Avg_Credit_Util_Ratio', 'Delays', bottom_right_data)
+    linegraph = LineGraph("Trend of Delayed Payments by Occupation Over Time", 'Month', 'Count', top_right_data)
+    parcoords = ParallelCoordinates("Analysis of Loan Type Distribution Across Income Groups", top_left_data)
+    barchart = BarChart("Occupational Comparison of Debt-to-Income Ratios", 'Occupation', 'DIO', bottom_left_data)
+    bubblechart = BubbleChart("Credit Score Insights: Accounts, Utilization, and Payment Timeliness", 'Num_Bank_Accounts', 'Avg_Credit_Util_Ratio', 'Delays', bottom_right_data)
 
     app.layout = html.Div(
     id="app-container",
@@ -152,6 +152,6 @@ if __name__ == '__main__':
         else:
             selected_occupations = [point['customdata'] for point in selected_data_bubblechart['points']]           
     
-        return linegraph.update(selected_occupations, palette_name)
+        return linegraph.update(dropdown_value, palette_name)
 
-    app.run_server(debug=True, dev_tools_ui=True)
+    app.run_server(debug=False, dev_tools_ui=False)

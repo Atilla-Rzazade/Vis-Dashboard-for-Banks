@@ -45,6 +45,7 @@ class LineGraph(html.Div):
 
         for occupation in selected_occupations:
             occupation_df = self.df[self.df['Occupation'] == occupation]
+            print(occupation_df)
             x_values = occupation_df[self.feature_x]
             y_values = occupation_df[self.feature_y]
             color = colors[self.df['Occupation'].tolist().index(occupation)] if occupation in self.df['Occupation'].tolist() else '#000'
